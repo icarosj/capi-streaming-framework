@@ -1,6 +1,7 @@
-# capi-streaming-framework
+# capi-streaming-framework (VHDL-2002)
 
 VHDL-2002 synthesizable converts for capi-streaming-framework.
+
 I was trying to synthesize the capi-streaming framework with Vivado, which does not seem to fully support vhdl-2008 yet (notice me if I'm wrong). I think it's the case for many tools out there.
 
 So I converted the vhd files into vhdl-2002 format. I am not not sure if it's compatible with vhdl-94 or not.
