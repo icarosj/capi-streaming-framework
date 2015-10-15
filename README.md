@@ -1,5 +1,22 @@
 # capi-streaming-framework
 
+VHDL-2002 synthesizable converts for capi-streaming-framework.
+I was trying to synthesize the capi-streaming framework with Vivado, which does not seem to fully support vhdl-2008 yet (notice me if I'm wrong). I think it's the case for many tools out there.
+
+So I converted the vhd files into vhdl-2002 format. I am not not sure if it's compatible with vhdl-94 or not.
+
+It wasn't that hard, all I had to convert was:
+
+1. condition operators 
+2. bit string literals
+3. process(all)
+
+not necessarily complicated, it took me some time. 
+I hope this fork can save some others' time.
+
+
+
+
 AFU framework for streaming applications with CAPI connected FGPAs.
 
 More info here: [http://slides.com/mbrobbel/capi-streaming-framework](http://slides.com/mbrobbel/capi-streaming-framework)
