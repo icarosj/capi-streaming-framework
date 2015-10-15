@@ -37,7 +37,7 @@ architecture logic of fifo is
 
 begin
 
-  comb : process(all)
+  comb : process(r, put, pull)
     variable v          : fifo_int;
   begin
 
@@ -69,7 +69,7 @@ begin
   reg : process(cr)
   begin
     if rising_edge(cr.clk) then
-      if cr.rst then
+      if cr.rst='1' then
         r.put_address   <= (others => '0');
         r.pull_address  <= (others => '0');
         r.empty         <= '1';
@@ -123,7 +123,7 @@ architecture logic of fifo_unsigned is
 
 begin
 
-  comb : process(all)
+  comb : process(r, put, pull)
     variable v          : fifo_int;
   begin
 
@@ -155,7 +155,7 @@ begin
   reg : process(cr)
   begin
     if rising_edge(cr.clk) then
-      if cr.rst then
+      if cr.rst='1' then
         r.put_address   <= (others => '0');
         r.pull_address  <= (others => '0');
         r.empty         <= '1';

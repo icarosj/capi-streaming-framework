@@ -19,7 +19,7 @@ architecture logic of mmio is
 
 begin
 
-  comb : process(all)
+  comb : process(i, r)
     variable v          : mmio_int;
   begin
 
@@ -39,10 +39,12 @@ begin
 ----------------------------------------------------------------------------------------------------------------------- afu descriptor
 
     -- register offset x'0 : reg_prog_model and num_of_processes
-    if i.ha.ad(PSL_MMIO_ADDRESS_WIDTH - 1 downto 0) = 24x"0" then
+    --if i.ha.ad(PSL_MMIO_ADDRESS_WIDTH - 1 downto 0) = 24x"0" then
+    if i.ha.ad(PSL_MMIO_ADDRESS_WIDTH - 1 downto 0) = x"000000" then
       v.cfg_data        := AFUD_0;
     -- register offset x'30' : per_process_psa_control
-    elsif i.ha.ad(PSL_MMIO_ADDRESS_WIDTH - 1 downto 0) = 24x"c" then
+    --elsif i.ha.ad(PSL_MMIO_ADDRESS_WIDTH - 1 downto 0) = 24x"c" then
+    elsif i.ha.ad(PSL_MMIO_ADDRESS_WIDTH - 1 downto 0) = x"00000c" then
       v.cfg_data        := AFUD_30;
     else
       v.cfg_data        := (others => '0');
@@ -50,7 +52,7 @@ begin
 
 ----------------------------------------------------------------------------------------------------------------------- write
 
-    if v.mmio_write then
+    if v.mmio_write='1' then
       case i.ha.ad is
         -- debug data
         when MMIO_REG_ADDRESS =>
@@ -62,16 +64,16 @@ begin
 ----------------------------------------------------------------------------------------------------------------------- read
 
     -- afu descriptor double word
-    if r.cfg_read and r.mmio_dw then
+    if r.cfg_read='1' and r.mmio_dw='1' then
       v.mmio_rdata      := v.cfg_data;
     -- afu descriptor word
-    elsif r.cfg_read and i.ha.ad(0) then
+    elsif r.cfg_read='1' and i.ha.ad(0)='1' then
       v.mmio_rdata      := v.cfg_data(PSL_WORD_WIDTH - 1 downto 0) & v.cfg_data(PSL_WORD_WIDTH - 1 downto 0);
     -- afu descriptor other word
-    elsif r.cfg_read then
+    elsif r.cfg_read='1' then
       v.mmio_rdata      := v.cfg_data(PSL_WORD_WIDTH - 1 downto 0) & v.cfg_data(PSL_WORD_WIDTH - 1 downto 0);
     -- read register double word
-    elsif r.mmio_read and r.mmio_dw then
+    elsif r.mmio_read='1' and r.mmio_dw='1' then
       case i.ha.ad is
         -- debug data
         when MMIO_REG_ADDRESS =>
@@ -98,7 +100,7 @@ begin
   reg : process(i.cr)
   begin
     if rising_edge(i.cr.clk) then
-      if i.cr.rst then
+      if i.cr.rst='1' then
         mmio_reset(r);
       else
         r <= q;

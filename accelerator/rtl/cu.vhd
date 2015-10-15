@@ -22,7 +22,7 @@ architecture logic of cu is
 
 begin
 
-  comb : process(all)
+  comb : process(i, r, re)
     variable v              : cu_int;
   begin
 
@@ -38,18 +38,18 @@ begin
 
     case r.state is
       when idle =>
-        if i.start then
+        if i.start='1' then
           v.state           := copy;
           v.wed             := i.wed;
           v.o.done          := '0';
-          read_cachelines   (v.o.read, i.wed.source, i.wed.size);
-          write_cachelines  (v.o.write.request, i.wed.destination, i.wed.size);
+          read_cachelines   (v.o.read, i.wed.source, i.wed.size, 0);
+          write_cachelines  (v.o.write.request, i.wed.destination, i.wed.size, 0);
         end if;
 
       when copy =>
-        if not(re.fifo.empty) and not(i.write.full(0)) then
+        if not(re.fifo.empty='1') and not(i.write.full(0)='1') then
           v.pull            := '1';
-          write_data        (v.o.write.data, re.fifo.data);
+          write_data        (v.o.write.data, 0, re.fifo.data);
         end if;
 
         v.wed.size          := r.wed.size - u(i.write.valid);
@@ -94,7 +94,7 @@ begin
   reg : process(i.cr)
   begin
     if rising_edge(i.cr.clk) then
-      if i.cr.rst then
+      if i.cr.rst='1' then
         cu_reset(r);
       else
         r                   <= q;

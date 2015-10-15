@@ -24,7 +24,7 @@ architecture logic of control is
 
 begin
 
-  comb : process(all)
+  comb : process(i, r, co)
     variable v                  : control_int;
   begin
 
@@ -37,7 +37,7 @@ begin
 
 ----------------------------------------------------------------------------------------------------------------------- control commands
 
-    if  i.ha.val then
+    if  i.ha.val='1' then
       case i.ha.com is
         when PCC_RESET =>
           v.state               := reset;
@@ -45,7 +45,7 @@ begin
         when PCC_START =>
           v.state               := wed;
           v.o.ah.running        := '1';
-          read_cacheline        (v.o.cd.read, i.ha.ea);
+          read_cacheline        (v.o.cd.read, i.ha.ea, 0);
         when others =>
           null;
       end case;
@@ -61,22 +61,22 @@ begin
         v.o.ca.reset            := '0';
         v.o.ah.done             := '1';
       when wed =>
-        if i.dc.read.valid then
+        if i.dc.read.valid='1' then
           v.state               := go;
           wed_parse             (i.dc.read.data, v.wed);
           v.start               := '1';
         end if;
       when go =>
         v.start                 := '0';
-        if co.done then
-          write_byte            (v.o.cd.write, i.ha.ea, slv(x"01"));
+        if co.done='1' then
+          write_byte            (v.o.cd.write, i.ha.ea, 0, slv(x"01"));
           v.state               := done;
         else
           v.o.cd.read           := co.read;
           v.o.cd.write          := co.write;
         end if;
       when done =>
-        if i.dc.write.valid then
+        if i.dc.write.valid='1' then
           v.state               := idle;
           v.o.ah.running        := '0';
           v.o.ah.done           := '1';
@@ -101,7 +101,7 @@ begin
   reg : process(i.clk, r.o.ca.reset)
   begin
     if rising_edge(i.clk) then
-      if r.o.ca.reset then
+      if r.o.ca.reset='1' then
         control_reset(r);
       else
         r                       <= q;

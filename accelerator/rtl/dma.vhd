@@ -24,7 +24,7 @@ architecture logic of dma is
 
 begin
 
-  comb : process(all)
+  comb : process(i, r, re)
     variable v                                          : dma_int;
   begin
 
@@ -46,7 +46,7 @@ begin
     v.rse.engine(r.rse.pull_engine).touch.count         := r.rse.engine(r.rse.pull_engine).touch.count + u(r.read and not(r.read_touch));
     v.wse.engine(r.wse.pull_engine).touch.count         := r.wse.engine(r.wse.pull_engine).touch.count + u(r.write and not(r.write_touch));
 
-    if i.b.rad(0) then
+    if i.b.rad(0)='1' then
       v.o.b.rdata                                       := re.wb.data(1023 downto 512);
     else
       v.o.b.rdata                                       := re.wb.data(511 downto 0);
@@ -54,16 +54,16 @@ begin
 
 ----------------------------------------------------------------------------------------------------------------------- select read/write
 
-    if l(r.rse.active_count > 0 and r.wse.active_count > 0 and v.read_credits > 0 and v.write_credits > 0) and v.rt.available and v.wt.available then
+    if l(r.rse.active_count > 0 and r.wse.active_count > 0 and v.read_credits > 0 and v.write_credits > 0)='1' and v.rt.available='1' and v.wt.available='1' then
       v.read                                            := not(DMA_WRITE_PRIORITY);
       v.write                                           := DMA_WRITE_PRIORITY;
-    elsif v.rt.available and l(r.rse.active_count > 0 and v.read_credits > 0) then
+    elsif v.rt.available='1' and l(r.rse.active_count > 0 and v.read_credits > 0)='1' then
       v.read                                            := '1';
-    elsif v.wt.available and l(r.wse.active_count > 0 and v.write_credits > 0) then
+    elsif v.wt.available='1' and l(r.wse.active_count > 0 and v.write_credits > 0)='1' then
       v.write                                           := '1';
     end if;
 
-    if v.read then
+    if v.read='1' then
       v.o.c.tag                                         := "0" & r.rt.tag(DMA_TAG_WIDTH - 1 downto 0);
     else
       v.o.c.tag                                         := "1" & r.wt.tag(DMA_TAG_WIDTH - 1 downto 0);
@@ -78,7 +78,7 @@ begin
 ----------------------------------------------------------------------------------------------------------------------- move requests to stream engines
 
     for stream in 0 to DMA_READ_ENGINES - 1 loop
-      if not(re.rq(stream).empty) and r.rse.free(stream) then
+      if not(re.rq(stream).empty='1') and r.rse.free(stream)='1' then
         v.rse.free(stream)                              := '0';
         v.rse.ready(stream)                             := '1';
         v.rse.engine(stream).hold                       := (others => '0');
@@ -90,7 +90,7 @@ begin
     end loop;
 
     for stream in 0 to DMA_WRITE_ENGINES - 1 loop
-      if not(re.wq(stream).empty) and r.wse.free(stream) then
+      if not(re.wq(stream).empty='1') and r.wse.free(stream)='1' then
         v.wse.free(stream)                              := '0';
         v.wse.ready(stream)                             := '1';
         v.wse.engine(stream).hold                       := (others => '0');
@@ -104,7 +104,7 @@ begin
 ----------------------------------------------------------------------------------------------------------------------- select stream engine
 
     for stream in 0 to DMA_READ_ENGINES - 1 loop
-      if r.rse.ready(stream) and not(r.rse.free(stream)) then
+      if r.rse.ready(stream)='1' and not(r.rse.free(stream)='1') then
         v.rse.pull_engine                               := stream;
       end if;
     end loop;
@@ -112,7 +112,7 @@ begin
     v.rse.pull_stream(v.rse.pull_engine)                := '1';
 
     for stream in 0 to DMA_WRITE_ENGINES - 1 loop
-      if r.wse.ready(stream) and not(r.wse.free(stream)) and not(re.wqb(stream).empty) then
+      if r.wse.ready(stream)='1' and not(r.wse.free(stream)='1') and not(re.wqb(stream).empty='1') then
         v.wse.pull_engine                               := stream;
       end if;
     end loop;
@@ -123,9 +123,9 @@ begin
 
 ----------------------------------------------------------------------------------------------------------------------- generate commands
 
-    if v.read then
-      if DMA_READ_TOUCH and l(r.rse.engine(v.rse.pull_engine).touch.count = DMA_TOUCH_COUNT and r.rse.engine(v.rse.pull_engine).request.size + DMA_TOUCH_COUNT > PSL_PAGESIZE)
-        and not(r.rse.engine(v.rse.pull_engine).touch.touch)
+    if v.read='1' then
+      if DMA_READ_TOUCH='1' and l(r.rse.engine(v.rse.pull_engine).touch.count = DMA_TOUCH_COUNT and r.rse.engine(v.rse.pull_engine).request.size + DMA_TOUCH_COUNT > PSL_PAGESIZE)='1'
+        and not(r.rse.engine(v.rse.pull_engine).touch.touch='1')
       then
         v.o.c.com                                       := PCO_TOUCH_I;
         v.o.c.ea                                        := r.rse.engine(v.rse.pull_engine).touch.address;
@@ -151,9 +151,9 @@ begin
       end if;
     end if;
 
-    if v.write then
-      if DMA_WRITE_TOUCH and l(r.wse.engine(v.wse.pull_engine).touch.count = DMA_TOUCH_COUNT and r.wse.engine(v.wse.pull_engine).request.size + DMA_TOUCH_COUNT > PSL_PAGESIZE)
-        and not(r.wse.engine(v.wse.pull_engine).touch.touch)
+    if v.write='1' then
+      if DMA_WRITE_TOUCH='1' and l(r.wse.engine(v.wse.pull_engine).touch.count = DMA_TOUCH_COUNT and r.wse.engine(v.wse.pull_engine).request.size + DMA_TOUCH_COUNT > PSL_PAGESIZE)='1'
+        and not(r.wse.engine(v.wse.pull_engine).touch.touch='1')
       then
         v.o.c.com                                       := PCO_TOUCH_I;
         v.o.c.ea                                        := r.wse.engine(v.wse.pull_engine).touch.address;
@@ -186,8 +186,8 @@ begin
     end loop;
 
     for stream in 0 to DMA_READ_ENGINES - 1 loop
-      if not(v.rse.pull_stream(stream)) then
-        if not(v.rse.free(stream)) and not(v.rse.ready(stream)) then
+      if not(v.rse.pull_stream(stream)='1') then
+        if not(v.rse.free(stream)='1') and not(v.rse.ready(stream)='1') then
           v.rse.engine(stream).hold                     := r.rse.engine(stream).hold + u(v.read and not(v.rse.free(stream)));
           if v.rse.engine(stream).hold >= v.rse.active_count - 1 then
             v.rse.ready(stream)                         := '1';
@@ -199,7 +199,7 @@ begin
 
     for stream in 0 to DMA_WRITE_ENGINES - 1 loop
       if stream /= v.wse.pull_engine then
-        if not(v.wse.free(stream)) and not(v.wse.ready(stream)) then
+        if not(v.wse.free(stream)='1') and not(v.wse.ready(stream)='1') then
           v.wse.engine(stream).hold                     := r.wse.engine(stream).hold + u(v.write);
           if v.wse.engine(stream).hold >= v.wse.active_count - 1 then
             v.wse.ready(stream)                         := '1';
@@ -211,21 +211,21 @@ begin
 
 --------------------------------------------------------------------------------------------------------------------- handle responses
 
-    if i.r.valid and not(write) and
+    if i.r.valid='1' and not(write='1') and
       l((i.r.tag <  r.rb.pull_address(DMA_TAG_WIDTH - 1 downto 0) and r.rb.put_flip =  r.rb.pull_flip) or
-        (i.r.tag >= r.rb.pull_address(DMA_TAG_WIDTH - 1 downto 0) and r.rb.put_flip /= r.rb.pull_flip))
+        (i.r.tag >= r.rb.pull_address(DMA_TAG_WIDTH - 1 downto 0) and r.rb.put_flip /= r.rb.pull_flip))='1'
     then
       v.rb.put_flip                                     := not r.rb.put_flip;
     end if;
-    if i.r.valid and write and
+    if i.r.valid='1' and write='1' and
       l((tag <  r.wb.pull_address(DMA_TAG_WIDTH - 1 downto 0) and r.wb.put_flip =  r.wb.pull_flip) or
-        (tag >= r.wb.pull_address(DMA_TAG_WIDTH - 1 downto 0) and r.wb.put_flip /= r.wb.pull_flip))
+        (tag >= r.wb.pull_address(DMA_TAG_WIDTH - 1 downto 0) and r.wb.put_flip /= r.wb.pull_flip))='1'
     then
       v.wb.put_flip                                     := not r.wb.put_flip;
     end if;
 
-    if i.r.valid then
-      if write then
+    if i.r.valid='1' then
+      if write='1' then
         v.wb.status(idx(tag))                           := v.wb.put_flip;
       else
         v.rb.status(idx(tag))                           := v.rb.put_flip;
@@ -384,7 +384,7 @@ begin
   reg : process(i.cr)
   begin
     if rising_edge(i.cr.clk) then
-      if i.cr.rst then
+      if i.cr.rst='1' then
         dma_reset(r);
       else
         r                                               <= q;

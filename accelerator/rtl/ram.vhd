@@ -25,12 +25,12 @@ architecture logic of ram is
 begin
 
   -- read new data
-  w_r : if wr generate
+  w_r : if wr='1' generate
     process(clk)
       variable mem                : mem_type := (others => (others => '0'));
     begin
       if rising_edge(clk) then
-        if put then
+        if put='1' then
           mem(idx(address))       := data_in;
         end if;
         data_out                  <= mem(idx(address));
@@ -39,13 +39,13 @@ begin
   end generate w_r;
 
   -- read old data
-  r_w : if not wr generate
+  r_w : if not wr='1' generate
     process(clk)
       variable mem                : mem_type := (others => (others => '0'));
     begin
       if rising_edge(clk) then
         data_out                  <= mem(idx(address));
-        if put then
+        if put='1' then
           mem(idx(address))       := data_in;
         end if;
       end if;
@@ -83,12 +83,12 @@ architecture logic of ram_unsigned is
 begin
 
   -- read new data
-  w_r : if wr generate
+  w_r : if wr='1' generate
     process(clk)
       variable mem                : mem_type := (others => (others => '0'));
     begin
       if rising_edge(clk) then
-        if put then
+        if put='1' then
           mem(idx(address))       := data_in;
         end if;
         data_out                  <= mem(idx(address));
@@ -97,13 +97,13 @@ begin
   end generate w_r;
 
   -- read old data
-  r_w : if not wr generate
+  r_w : if not wr='1' generate
     process(clk)
       variable mem                : mem_type := (others => (others => '0'));
     begin
       if rising_edge(clk) then
         data_out                  <= mem(idx(address));
-        if put then
+        if put='1' then
           mem(idx(address))       := data_in;
         end if;
       end if;
@@ -143,11 +143,11 @@ architecture logic of ram_dual is
 begin
 
   -- read new data
-  w_r : if wr generate
+  w_r : if wr='1' generate
     process(clk)
     begin
       if rising_edge(clk) then
-        if put then
+        if put='1' then
           mem(idx(write_address)) := data_in;
         end if;
         data_out                  <= mem(idx(read_address));
@@ -156,12 +156,12 @@ begin
   end generate w_r;
 
   -- read old data
-  r_w : if not wr generate
+  r_w : if not wr='1' generate
     process(clk)
     begin
       if rising_edge(clk) then
         data_out                  <= mem(idx(read_address));
-        if put then
+        if put='1' then
           mem(idx(write_address)) := data_in;
         end if;
       end if;
@@ -201,11 +201,11 @@ architecture logic of ram_dual_unsigned is
 begin
 
   -- read new data
-  w_r : if wr generate
+  w_r : if wr='1' generate
     process(clk)
     begin
       if rising_edge(clk) then
-        if put then
+        if put='1' then
           mem(idx(write_address)) := data_in;
         end if;
         data_out                  <= mem(idx(read_address));
@@ -214,12 +214,12 @@ begin
   end generate w_r;
 
   -- read old data
-  r_w : if not wr generate
+  r_w : if not wr='1' generate
     process(clk)
     begin
       if rising_edge(clk) then
         data_out                  <= mem(idx(read_address));
-        if put then
+        if put='1' then
           mem(idx(write_address)) := data_in;
         end if;
       end if;

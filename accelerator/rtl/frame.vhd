@@ -73,11 +73,11 @@ begin
   reg : process(cr)
   begin
     if rising_edge(cr.clk) then
-      if cr.rst then
+      if cr.rst='1' then
         rc    <= (others => '0');
       else
         -- debug counter
-        if ha.r.valid then
+        if ha.r.valid='1' then
           rc  <= rc + 1;
         end if;
       end if;

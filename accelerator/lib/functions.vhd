@@ -111,7 +111,7 @@ package body functions is
   function u (a : in std_logic) return unsigned is
     variable result         : unsigned(0 downto 0);
   begin
-    if a then
+    if a='1' then
       result                := u("1");
     else
       result                := u("0");
@@ -145,7 +145,7 @@ package body functions is
     variable result         : natural := 0;
   begin
     for i in a'range loop
-      if a(i) then
+      if a(i)='1' then
         result              := result + 1;
       end if;
     end loop;
