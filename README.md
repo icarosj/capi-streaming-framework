@@ -12,7 +12,8 @@ It wasn't that hard, all I had to convert was:
 2. bit string literals
 3. process(all)
 
-not necessarily complicated, it took me some time. 
+Although not necessarily complicated, it took me some time. 
+
 I hope this fork can save some others' time.
 
 
